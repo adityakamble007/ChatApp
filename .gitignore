@@ -2,7 +2,7 @@
 /node_modules
 /.pnp
 .pnp.*
-
+node_modules/
 # Yarn
 .yarn/*
 !.yarn/patches
