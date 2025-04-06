@@ -13,7 +13,7 @@ const Message = ({ recipientId }) => {
   useEffect(() => {
     if (!user) return; // Ensure user is defined before proceeding
 
-    const newSocket = io("${process.env.NEXT_PUBLIC_API_URL}");
+    const newSocket = io(process.env.NEXT_PUBLIC_API_URL);
 
     newSocket.on("connect", () => {
       if (user?.id) {
