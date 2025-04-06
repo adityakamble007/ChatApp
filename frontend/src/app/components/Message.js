@@ -13,7 +13,7 @@ const Message = ({ recipientId }) => {
   useEffect(() => {
     if (!user) return; // Ensure user is defined before proceeding
 
-    const newSocket = io("http://localhost:20670");
+    const newSocket = io("${process.env.NEXT_PUBLIC_API_URL}");
 
     newSocket.on("connect", () => {
       if (user?.id) {
@@ -43,19 +43,19 @@ const Message = ({ recipientId }) => {
       try {
         // Fetch messages between the current user and the recipient
         const messageResponse = await fetch(
-          `http://localhost:20670/messages/${user.id}/${recipientId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/messages/${user.id}/${recipientId}`
         );
         const messagesData = await messageResponse.json();
 
         // Fetch recipient details from backend
         const recipientResponse = await fetch(
-          `http://localhost:20670/user/${recipientId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/user/${recipientId}`
         );
         const recipientData = await recipientResponse.json();
 
         // Fetch your own user details from backend
         const userResponse = await fetch(
-          `http://localhost:20670/user/${user.id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/user/${user.id}`
         );
         const userData = await userResponse.json();
 

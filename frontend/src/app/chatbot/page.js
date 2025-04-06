@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { useUser } from "@clerk/nextjs";
 
-const socket = io("http://localhost:20670");
+const socket = io("${process.env.NEXT_PUBLIC_API_URL}");
 
 const Message = () => {
   const { user } = useUser();
@@ -52,7 +52,7 @@ const Message = () => {
     async function fetchMessages() {
       try {
         const response = await fetch(
-          `http://localhost:20670/messages/${user.id}/${recipientId}`
+          `${process.env.NEXT_PUBLIC_API_URL}/messages/${user.id}/${recipientId}`
         );
         const data = await response.json();
         setMessages(data);
@@ -70,7 +70,7 @@ const Message = () => {
     async function fetchChannels() {
       try {
         const response = await fetch(
-          `http://localhost:20670/messages/${user.id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/messages/${user.id}`
         );
         const data = await response.json();
         console.log("Channels fetched:", data);

@@ -39,7 +39,7 @@ const MessageBar = () => {
         async function getUserName(recipientId) {
           try {
             const response = await fetch(
-              `http://localhost:20670/user/${recipientId}`
+              `${process.env.NEXT_PUBLIC_API_URL}/user/${recipientId}`
             );
             const userData = await response.json();
             return {
@@ -60,7 +60,7 @@ const MessageBar = () => {
 
         // Fetch messages first
         const response = await fetch(
-          `http://localhost:20670/messages/${user.id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/messages/${user.id}`
         );
         const data = await response.json();
         console.log("Channels fetched:", data);
@@ -98,7 +98,7 @@ const MessageBar = () => {
     setError("");
 
     try {
-      const res = await fetch(`http://localhost:20670/search-users?query=${query}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/search-users?query=${query}`);
       const data = await res.json();
       console.log("Response data:", data);
 

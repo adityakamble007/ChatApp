@@ -15,7 +15,7 @@ export default function UserSearch() {
     setError("");
 
     try {
-      const res = await fetch(`http://localhost:20670/search-users?query=${query}`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/search-users?query=${query}`);
       const data = await res.json();
       console.log("Response data:", data);
 
