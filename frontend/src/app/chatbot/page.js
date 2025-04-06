@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { useUser } from "@clerk/nextjs";
 
-const socket = io("${process.env.NEXT_PUBLIC_API_URL}");
+const socket = io(`${process.env.NEXT_PUBLIC_API_URL}`);
 
 const Message = () => {
   const { user } = useUser();
