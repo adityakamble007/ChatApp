@@ -3,17 +3,20 @@ import { useState, useEffect } from "react";
 
 import { useUser } from "@clerk/nextjs";
 import Message from "./Message";
-
+import UserSearch from "../search/page";
+import { avatar } from "@material-tailwind/react";
 
 const MessageBar = () => {
   const { user } = useUser();
-  const [recipientId, setRecipientId] = useState("");
   const [recipientId1, setRecipientId1] = useState("");
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
   const [channels, setChannels] = useState([]);
   const [triggerEffect, setTriggerEffect] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+    const [query, setQuery] = useState("");
+    const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+  
   // Load theme preference from local storage
   useEffect(() => {
     const storedTheme = localStorage.getItem("darkMode");
@@ -87,19 +90,32 @@ const MessageBar = () => {
 
     fetchChannels();
   }, [user]);
-  const sendMessage = () => {
-    if (message.trim() && recipientId.trim() && user) {
-      const messageData = {
-        senderId: user.id,
-        username: user.username || user.firstName || user.email,
-        text: message,
-        timestamp: new Date().toISOString(),
-      };
-      socket.emit("send_private_message", { recipientId, messageData });
-      setMessages((prev) => [...prev, messageData]);
-      setMessage("");
+
+  const handleSearch = async () => {
+    if (!query) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`http://localhost:20670/search-users?query=${query}`);
+      const data = await res.json();
+      console.log("Response data:", data);
+
+      if (!Array.isArray(data)) {
+        throw new Error("Unexpected response format");
+      }
+
+      setResults(data);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      setError("Failed to search users.");
+      setResults([]);
+    } finally {
+      setLoading(false);
     }
   };
+
   function handleRecipientClick(recipientId) {
     console.log("Recipient ID clicked:", recipientId);
     setRecipientId1(recipientId);
@@ -150,38 +166,82 @@ const MessageBar = () => {
         </header>
 
         {/* Contact List */}
-        <div className="overflow-y-auto h-screen p-3 mb-9 pb-20">
-          {channels.map((msg) => (
-            <div
-              key={msg._id}
-              
-              
-            >
-              <div className="flex items-center mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded-md" onClick={() => handleRecipientClick(msg.recipientId)}>
-                <div className="w-12 h-12 bg-gray-300 rounded-full mr-3">
-                  <img
-                    src={msg.recipientImage}
-                    alt="User Avatar"
-                    className="w-12 h-12 rounded-full"
-                  />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-lg font-semibold">{msg.recipientName}</h2>
-                  {/* <p className="text-gray-600">{msg.recipientId}</p> */}
-                </div>
-              </div>
+        <div className="overflow-y-auto h-screen p-3 pb-20">
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold mb-4">Search Users</h2>
+
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+      <input
+        type="text"
+        placeholder="Search users..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="w-full sm:flex-1 border px-3 py-2 rounded text-sm"
+      />
+      <button
+        onClick={handleSearch}
+        className="bg-blue-500 text-white px-4 py-2 text-sm rounded hover:bg-blue-600"
+      >
+        Search
+      </button>
+    </div>
+
+    {loading && <p className="text-sm text-gray-500">Loading...</p>}
+    {error && <p className="text-sm text-red-500">{error}</p>}
+
+    {!loading && !error && results.length > 0 && (
+      <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
+        {results.map((msg) => (
+          <li
+            key={msg.recipientId}
+            onClick={() => handleRecipientClick(msg.recipientId)}
+            className="flex items-center gap-3 p-2 rounded hover:bg-gray-100 transition cursor-pointer"
+          >
+            <img
+              src={msg.imageUrl}
+              alt="avatar"
+              className="w-8 h-8 rounded-full object-cover"
+            />
+            <div className="flex flex-col">
+              <p className="text-sm font-medium truncate">{msg.fullName}</p>
+              <p className="text-xs text-gray-500 truncate">{msg.email}</p>
             </div>
-          ))}
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+
+  {channels.map((msg) => (
+    <div key={msg._id}>
+      <div
+        className="flex items-center mb-4 cursor-pointer hover:bg-gray-100 p-2 rounded-md"
+        onClick={() => handleRecipientClick(msg.recipientId)}
+      >
+        <div className="w-12 h-12 bg-gray-300 rounded-full mr-3">
+          <img
+            src={msg.recipientImage}
+            alt="User Avatar"
+            className="w-12 h-12 rounded-full object-cover"
+          />
+        </div>
+        <div className="flex-1">
+          <h2 className="text-lg font-semibold">{msg.recipientName}</h2>
         </div>
       </div>
-      {/* Chat Area */} 
+    </div>
+  ))}
+</div>
+
+      </div>
+      {/* Chat Area */}
       {recipientId1 ? (
-  <Message recipientId={recipientId1} /> // Pass recipientId1 directly
-) : (
-  <div className="flex items-center justify-center h-full">
-    <p className="text-gray-500">Select a contact to start chatting</p>
-  </div>
-)}    
+        <Message recipientId={recipientId1} /> // Pass recipientId1 directly
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-gray-500">Select a contact to start chatting</p>
+        </div>
+      )}
     </div>
   );
 };
